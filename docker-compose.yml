@@ -1,0 +1,73 @@
+version: '3'
+
+services:
+
+  bitcoin1:
+    env_file: .env
+    build:
+      context: ./bitcoin-core
+      args:
+        BITCOIN_VER: $BITCOIN_VER
+    image: bitcoin-core:$BITCOIN_VER
+    container_name: bitcoin1
+    hostname: bitcoin1
+    ports:
+      - "18332:18332"
+    networks:
+      - bitcoin-local-network
+    command: >
+      /bin/bash -c "
+        bitcoind -regtest -port=19001 &&
+        tail -f /dev/null"
+
+  bitcoin2:
+    env_file: .env
+    build:
+      context: ./bitcoin-core
+      args:
+        BITCOIN_VER: $BITCOIN_VER
+    image: bitcoin-core:$BITCOIN_VER
+    container_name: bitcoin2
+    hostname: bitcoin2
+    ports:
+      - "19332:18332"
+    networks:
+      - bitcoin-local-network
+    command: >
+      /bin/bash -c "
+        bitcoind -regtest -connect=bitcoin1:19001 &&
+        tail -f /dev/null"
+
+  cors1:
+    environment:
+      RPC_URL: http://bitcoin1:18332
+    build:
+      context: ./cors
+    image: cors:1
+    container_name: cors1
+    hostname: cors1
+    ports:
+      - "5000:5000"
+    networks:
+      - bitcoin-local-network
+    command: >
+      /bin/bash -c "python /home/cors/cors.py && tail -f /dev/null"
+
+  cors2:
+    environment:
+      RPC_URL: http://bitcoin2:18332
+    build:
+      context: ./cors
+    image: cors:1
+    container_name: cors2
+    hostname: cors2
+    ports:
+      - "5001:5000"
+    networks:
+      - bitcoin-local-network
+    command: >
+      /bin/bash -c "python /home/cors/cors.py && tail -f /dev/null"
+
+networks:
+  bitcoin-local-network:
+    external: true
