@@ -29,7 +29,7 @@ $ cd env-multi-bitcoin
 $ vagrant up
 $ vagrant ssh
 $ cd /vagrant_share
-$ ./startup.sh
+$ ./start.sh
 ```
 
 * bitcoin-cli
